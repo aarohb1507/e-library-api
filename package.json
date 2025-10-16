@@ -1,0 +1,33 @@
+{
+  "name": "elib",
+  "version": "1.0.0",
+  "description": "This is a e-book api project",
+  "keywords": [
+    "rest",
+    "api",
+    "express"
+  ],
+  "license": "ISC",
+  "author": "Aaroh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "tsx server.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.8.0",
+    "eslint": "^9.37.0",
+    "globals": "^16.4.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.1"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
