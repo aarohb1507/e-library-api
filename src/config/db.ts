@@ -1,7 +1,7 @@
 // db.ts
 import mongoose from "mongoose";
 import { config } from "./config";
-
+ 
 const connectDB = async () => {
   const uri = config.databaseUrl?.trim();
   if (!uri) throw new Error("Missing MONGO_CONNECTION_STRING");
