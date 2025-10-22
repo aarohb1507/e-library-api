@@ -49,7 +49,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     });
 
     //response
-    res.json({
+    res.status(201).json({
       accessToken: token,
     });
   } catch (err) {
