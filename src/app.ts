@@ -1,22 +1,22 @@
-import express from 'express'
+import express from "express";
 
-import globalErrorHandler from './middlewares/globalErrorHandler'
-import userRouter from './user/userRouter'
+import globalErrorHandler from "./middlewares/globalErrorHandler";
+import userRouter from "./user/userRouter";
 
-const app = express()
+const app = express();
 
-app.use(express.json())
+app.use(express.json());
 
-app.get('/', (req, res, next)=>{
+app.get("/", (req, res, next) => {
   res.json({
-    message: "Welcome to elib apis"
-  })
-})
+    message: "Welcome to elib apis",
+  });
+});
 
 //register user
-app.use('/api/users', userRouter )
+app.use("/api/users", userRouter);
 
 //global error handler
-app.use(globalErrorHandler)
+app.use(globalErrorHandler);
 
 export default app;
