@@ -16,7 +16,7 @@ app.get("/", (req, res, next) => {
 
 //register user
 app.use("/api/users", userRouter);
-app.use("api/books", bookRouter)
+app.use("/api/books", bookRouter)
 //global error handler
 app.use(globalErrorHandler);
 
