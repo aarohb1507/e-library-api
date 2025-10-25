@@ -6,8 +6,6 @@ import { config } from "../config/config";
 import jwt from "jsonwebtoken";
 import type { User } from "./userTypes";
 
-
-
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   //validation
   const { name, email, password } = req.body;
