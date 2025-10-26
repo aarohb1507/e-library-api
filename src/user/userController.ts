@@ -6,89 +6,71 @@ import { config } from "../config/config";
 import jwt from "jsonwebtoken";
 import type { User } from "./userTypes";
 
+// small helper so both register & login use the same signing logic
+function signAccessToken(userId: string) {
+  if (!config.jwtSecret) throw new Error("JWT secret not configured");
+  return jwt.sign({ sub: userId }, config.jwtSecret, {
+    algorithm: "HS256",
+    expiresIn: "7d",
+  });
+}
+
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
-  //validation
   const { name, email, password } = req.body;
-
   if (!name || !email || !password) {
-    const error = createHttpError(400, "All fields are required ");
-    return next(error);
+    return next(createHttpError(400, "All fields are required"));
   }
-  //database call
+
   try {
-    const user = await userModel.findOne({ email });
-
-    if (user) {
-      const error = createHttpError(400, "User already exists");
-      return next(error);
-    }
-  } catch (err) {
-    return next(createHttpError(500, "error while getting user"));
+    const existing = await userModel.findOne({ email });
+    if (existing) return next(createHttpError(409, "User already exists"));
+  } catch {
+    return next(createHttpError(500, "Error while checking existing user"));
   }
 
-  //pssword hashing
-  const hashPassword = await bcrypt.hash(password, 10);
+  const hash = await bcrypt.hash(password, 10);
 
   let newUser: User;
   try {
-    newUser = await userModel.create({
-      name,
-      email,
-      password: hashPassword,
-    });
-  } catch (err) {
-    return next(createHttpError(500, "error while creating user"));
+    newUser = await userModel.create({ name, email, password: hash });
+  } catch {
+    return next(createHttpError(500, "Error while creating user"));
   }
-
-  //process
 
   try {
-    //token generation
-    const token = jwt.sign({ sub: newUser._id }, config.jwtSecret as string, {
-      expiresIn: "7d",
-      algorithm: "HS256",
-    });
-
-    //response
-    res.status(201).json({
-      accessToken: token,
-    });
-  } catch (err) {
-    return next(createHttpError(500, "error while signing jwt token"));
+    const accessToken = signAccessToken(String(newUser._id));
+    return res.status(201).json({ accessToken });
+  } catch {
+    return next(createHttpError(500, "Error while signing JWT token"));
   }
-  
 };
-//LOGIN ENDPOINTS:
 
-const loginUser = async(req:Request, res:Response, next:NextFunction)=>{
-  const {email, password} = req.body
-//all fields 
-  if(!email || !password){
-    return next(createHttpError(400, "All fields are required"))
+// LOGIN
+const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return next(createHttpError(400, "All fields are required"));
   }
-//finding if exist
-let user
-  try{
-      user = await userModel.findOne({ email })
-  if(!user){
-    return next(createHttpError(404, "no such email exists"))
+
+  let user: User | null;
+  try {
+    user = await userModel.findOne({ email }).lean();
+    // For security, avoid revealing if email exists; use generic error:
+    if (!user) return next(createHttpError(401, "Invalid email or password"));
+  } catch {
+    return next(createHttpError(500, "Error while finding user"));
   }
-  }catch(err){
-    return next(createHttpError(500, "error while finding user email"))
+
+  const ok = await bcrypt.compare(password, user!.password);
+  if (!ok) return next(createHttpError(401, "Invalid email or password"));
+
+  try {
+    const accessToken = signAccessToken(String(user!._id));
+    // return token (and optionally user profile fields if you want)
+    return res.json({ accessToken });
+  } catch {
+    return next(createHttpError(500, "Error while signing JWT token"));
   }
-  //match passwords
-  const isMatch = await bcrypt.compare(password, user.password)
-  if(!isMatch){
-    return next(createHttpError(404, "passwords don't match"))
-  }
- //token issue
-  
-  res.json({
-    message:"ok dokay"
-  })
-}
+};
 
-
-export {createUser, loginUser};
-
-
+export { createUser, loginUser };
